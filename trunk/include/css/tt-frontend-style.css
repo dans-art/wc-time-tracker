@@ -1,0 +1,20 @@
+#wc_time_tracker select,
+#wc_time_tracker .button{
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+#wc_time_tracker .error{
+    color:red;
+}
+#wc_time_tracker .success{
+    color:green;
+}
+
+#tt_timetracker{
+    border: solid 1px black;
+}
+
+#tt_timetracker div{
+    margin: 0.25rem 0.5rem;
+}

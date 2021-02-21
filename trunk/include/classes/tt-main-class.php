@@ -1,24 +1,26 @@
 <?php
 
-class wc_time_tracker extends wc_time_tracker_helper
+class WcTimeTracker extends WcTimeTrackerHelper
 {
 
     public function __construct()
     {
-        add_shortcode('time_tracker', [$this, 'tt_render_frontend']);
+        if(!is_admin()){
+            add_shortcode('time_tracker', [$this, 'tt_render_frontend']);
+            
+          
+            //register Ajax
 
-        //register Ajax
-        //add_action('wp_ajax_tt-ajax', [$this, 'tt_ajax']);
-        //add_action('wp_ajax_nopriv_tt-ajax', [$this, 'tt_ajax']);
-        add_action('da_ajax_tt-ajax', [$this, 'tt_ajax']);
-        add_action('da_ajax_nopriv_tt-ajax', [$this, 'tt_ajax']);
+            add_action('da_ajax_tt-ajax', [$this, 'tt_ajax']);
+            add_action('da_ajax_nopriv_tt-ajax', [$this, 'tt_ajax']);
 
-        add_action( 'wp_loaded',[$this, 'tt_allow_wc_decimals'] );
-        
+            add_action( 'wp_loaded',[$this, 'tt_allow_wc_decimals']);
+            add_action( 'wp_loaded',[$this, 'tt_enqueue_frontend_scripts_n_styles']);
+        }else{
+            //if admin page. Placeholder for later...?
+        }
     }
-
-
-
+    
     public function tt_render_frontend()
     {
         $data = array();
@@ -40,16 +42,16 @@ class wc_time_tracker extends wc_time_tracker_helper
         `m3`.`meta_value` AS '_billing_company',
         `m4`.`meta_value` AS '_billing_first_name',
         `m5`.`meta_value` AS '_billing_last_name'
-        FROM `wploc_posts` `posts`
-        LEFT JOIN `wploc_postmeta` `m1`
+        FROM `".$wpdb->prefix."posts` `posts`
+        LEFT JOIN `".$wpdb->prefix."postmeta` `m1`
             ON `posts`.`ID` = `m1`.`post_id`
-        LEFT JOIN `wploc_postmeta` `m2`
+        LEFT JOIN `".$wpdb->prefix."postmeta` `m2`
             ON `posts`.`ID` = `m2`.`post_id`
-        LEFT JOIN `wploc_postmeta` `m3`
+        LEFT JOIN `".$wpdb->prefix."postmeta` `m3`
             ON `posts`.`ID` = `m3`.`post_id`
-        LEFT JOIN `wploc_postmeta` `m4`
+        LEFT JOIN `".$wpdb->prefix."postmeta` `m4`
             ON `posts`.`ID` = `m4`.`post_id`
-        LEFT JOIN `wploc_postmeta` `m5`
+        LEFT JOIN `".$wpdb->prefix."postmeta` `m5`
             ON `posts`.`ID` = `m5`.`post_id`
         WHERE `posts`.`post_type` = 'shop_order' 
         AND `posts`.`post_status` NOT LIKE 'wc-completed' 
@@ -74,11 +76,11 @@ class wc_time_tracker extends wc_time_tracker_helper
      */
     public function tt_ajax()
     {
-        $ajax = new wc_time_tracker_ajax();
-        $action =  $_REQUEST['action'];
-        $orderid =  $_REQUEST['orderid'];
-        $order_item_id =  $_REQUEST['order_item_id'];
-        $qty =  $_REQUEST['qty'];
+        $ajax = new WcTimeTrackerAjax();
+        $action =  (isset($_REQUEST['action']))?$_REQUEST['action']:null;
+        $orderid =  (isset($_REQUEST['orderid']))?$_REQUEST['orderid']:null;
+        $order_item_id =  (isset($_REQUEST['order_item_id']))?$_REQUEST['order_item_id']:null;
+        $qty =  (isset($_REQUEST['qty']))?$_REQUEST['qty']:null;
         switch ($action) {
             case 'get_products':
                 echo $ajax->get_products($orderid);
