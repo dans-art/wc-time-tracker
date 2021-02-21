@@ -9,7 +9,7 @@
  */
 include_once('kint.phar');
 
-class wc_time_tracker_helper
+class WcTimeTrackerHelper
 {
     protected $version = '0.1';
 
@@ -17,10 +17,11 @@ class wc_time_tracker_helper
     protected $plugin_url = '';
     public $plugin_path = '';
     protected $plugin_path_absolute = ABSPATH . 'wp-content/plugins/wc-time-tracker/';
-    protected $plugin_url_relative = 'wp-content/plugins/wc-time-tracker/';
+    protected $plugin_url_absolute = '/wp-content/plugins/wc-time-tracker/';
 
     public function __construct()
     {
+        $this -> plugin_url_absolute =+ site_url();
     }
 
 
@@ -86,27 +87,21 @@ class wc_time_tracker_helper
      * @return void
      * @todo Add support for custom stylesheets in theme folder
      */
-    public function tt_enqueue_scripts()
+    public function tt_enqueue_frontend_scripts_n_styles()
     {
-        //Load Admin scripts if on plugin-admin page
-        if (isset($_REQUEST['page']) and ($_REQUEST['page']) === 'notify-me') {
-            wp_enqueue_style('notify-me-admin', plugins_url('notify-me/style/admin.css'));
-        }
-        if ($this->scriptsLoaded) {
-            return true;
-        }
-        wp_enqueue_style('notify-me-style', plugins_url('notify-me/style/main.css'));
-        wp_enqueue_script('notify-me-app',  plugins_url('notify-me/scripts/notify-me-app.js'), ['jquery']);
+        wp_enqueue_style('timetracker-style', $this -> plugin_url_absolute.'include/css/tt-frontend-style.css');
+        wp_enqueue_script('timetracker-main-script',  $this -> plugin_url_absolute.'include/scripts/tt-main-script.js', ['jquery']);
+
+
         //Set script tag "Module"
-        add_filter('script_loader_tag', function ($tag, $handle, $src) {
+        /*add_filter('script_loader_tag', function ($tag, $handle, $src) {
             if ($handle === 'notify-me-app') {
                 return '<script type="module" src="' . esc_url($src) . '"></script>' . '<script>var notify_me_url = "' . esc_url($this->plugin_url) . '"; var wp_site_url = "' . esc_url(get_site_url()) . '";</script>';
             } else {
                 return $tag;
             }
         }, 10, 3);
-        //set the Site URL for JS
-        $this->scriptsLoaded = true;
+        */
         return;
     }
     public function min_decimal($val)
