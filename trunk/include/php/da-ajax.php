@@ -9,6 +9,12 @@ if (!isset( $_POST['action']))
 //to the relative location of the wp-load.php
 require_once('../../../../../wp-load.php'); 
 
+if(!is_user_logged_in()){
+    $ret_array = array('error' => 'You are not logged in. Access denied','success' => '');
+    echo json_encode($ret_array);
+    die();
+}
+
 //only allow user to make canges if he can edit orders
 if(!current_user_can('edit_shop_orders')){
     die('Not allowed');

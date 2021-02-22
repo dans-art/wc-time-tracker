@@ -17,7 +17,9 @@ jQuery(document).ready(function($){
     jQuery('#tt_action_button').click(function(btn){
         time_tracker_click(this);
     });
-
+    //Starts Push Service
+    const swRegistration = null;
+    init_push_notifications();
 });
 
 function get_products(orderid){
@@ -112,6 +114,9 @@ function run_time_tracker(){
     jQuery('#tt_start_time .value').html(date+' - '+time);
     jQuery('#tt_stop_time .value').html('');
 
+    //Show the notification
+    showLocalNotification('Time Tracker', 'Tracking started for '+get_current_customer_name(), swRegistration);
+
     document.tt_timer = window.setInterval(function(){
            time_tracker_current();
       }, 1000);
@@ -185,3 +190,88 @@ function pad(n, z = 2) {
 function tt_log(msg, type){
     jQuery('#tt_log').append('<span class="'+type+'">'+msg+'</span><br/>');
 } 
+
+function get_current_customer_name(){
+    var selector = jQuery('#tt_customer_select').find(':selected');
+    var company = selector.attr('data-company');
+    var name = selector.attr('data-name');
+    return company+" - "+name;
+     
+}
+//Push Notifications
+
+
+const check = () => {
+    if (!('serviceWorker' in navigator)) {
+      throw new Error('No Service Worker support!')
+    }
+    if (!('PushManager' in window)) {
+      throw new Error('No Push API Support!')
+    }
+  }
+  
+  // I added a function that can be used to register a service worker.
+const registerServiceWorker = async () => {
+    swRegistration = await navigator.serviceWorker.register(wp_frontend_url+'include/scripts/tt-push-service.js'); //notice the file name
+    console.log(swRegistration);
+    return swRegistration;
+}
+ 
+const requestNotificationPermission = async () => {
+    const permission = await window.Notification.requestPermission();
+    // value of permission can be 'granted', 'default', 'denied'
+    // granted: user has accepted the request
+    // default: user has dismissed the notification permission popup by clicking on x
+    // denied: user has denied the request.
+    if(permission !== 'granted'){
+        throw new Error('Permission not granted for Notification');
+    }
+}
+
+const showLocalNotification = (title, body, swRegistration) => {
+    const options = {
+        body,
+        // here you can add more properties like icon, image, vibrate, etc.
+        /**
+         * const options = {
+              "//": "Visual Options",
+              "body": "<String>",
+              "icon": "<URL String>",
+              "image": "<URL String>",
+              "badge": "<URL String>",
+              "vibrate": "<Array of Integers>",
+              "sound": "<URL String>",
+              "dir": "<String of 'auto' | 'ltr' | 'rtl'>",
+
+              "//": "Behavioural Options",
+              "tag": "<String>",
+              "data": "<Anything>",
+              "requireInteraction": "<boolean>",
+              "renotify": "<Boolean>",
+              "silent": "<Boolean>",
+
+              "//": "Both Visual & Behavioural Options",
+              "actions": "<Array of Strings>",
+
+              "//": "Information Option. No visual affect.",
+              "timestamp": "<Long>"
+            }
+
+            https://developer.mozilla.org/en-US/docs/Web/API/notification
+         */
+    };
+    swRegistration.showNotification(title, options);
+}
+
+const init_push_notifications = async () => {
+    check();
+    const swRegistration = await registerServiceWorker();
+
+    //Add Button to ask for permission
+    const permission =  await requestNotificationPermission();
+    
+    
+  }
+  
+
+

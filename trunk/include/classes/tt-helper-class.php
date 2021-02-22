@@ -95,8 +95,8 @@ class WcTimeTrackerHelper
 
         //Set script tag "Module"
         /*add_filter('script_loader_tag', function ($tag, $handle, $src) {
-            if ($handle === 'notify-me-app') {
-                return '<script type="module" src="' . esc_url($src) . '"></script>' . '<script>var notify_me_url = "' . esc_url($this->plugin_url) . '"; var wp_site_url = "' . esc_url(get_site_url()) . '";</script>';
+            if ($handle === 'timetracker-main-script') {
+                return '<script type="module" src="' . esc_url($src) . '"></script>' . '<script></script>';
             } else {
                 return $tag;
             }

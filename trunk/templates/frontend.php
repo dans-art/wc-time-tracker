@@ -2,6 +2,7 @@
     <script type="text/javascript">
         const da_ajaxurl = "<?php echo site_url(); ?>/wp-content/plugins/wc-time-tracker/include/php/da-ajax.php";
         const wp_backend_url = "<?php echo get_admin_url(); ?>post.php?action=edit&post=";
+        const wp_frontend_url = "<?php echo site_url(); ?>/wp-content/plugins/wc-time-tracker/";
     </script>
 
     <?php
@@ -13,7 +14,8 @@
             <?php
             foreach ($orders as $order) {
                 $date = date('d.m.Y', strtotime($order->post_date));
-                echo "<option value='" . $order->ID . "'>" . $date . " - " . $order->_billing_company . " | " . $order->_billing_first_name . " " . $order->_billing_last_name . " | " . $order->order_total . " " . $order->currency . "</option>";
+                //@todo: Replace all Quotes! 
+                echo "<option value='" . $order->ID . "' data-company='".htmlspecialchars($order->_billing_company, ENT_QUOTES )."' data-name='".$order->_billing_first_name." ".$order -> _billing_last_name."'>" . $date . " - " . $order->_billing_company . " | " . $order->_billing_first_name . " " . $order->_billing_last_name . " | " . $order->order_total . " " . $order->currency . "</option>";
             }
             ?>
         </select>
@@ -43,6 +45,5 @@
     </div>
     <div id="tt_log">
     </div>
-
 
 </div>
