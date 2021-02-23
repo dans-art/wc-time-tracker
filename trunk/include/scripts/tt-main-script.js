@@ -1,3 +1,11 @@
+//Starts Push Service
+ var swRegistration = null;
+
+/**
+ * Adds Eventlistener for customer_select - change
+ * Adds Eventlistener for Starting the Timetracker - click
+ * Initialising the Service Worker for Notifications
+ */
 jQuery(document).ready(function($){
 
     /**
@@ -9,7 +17,6 @@ jQuery(document).ready(function($){
             jQuery('#tt_customer_products_select').html("");
             hide_time_tracker();
             hide_product_dropdown();
-
             get_products($(this).val());
         }
     });
@@ -17,11 +24,14 @@ jQuery(document).ready(function($){
     jQuery('#tt_action_button').click(function(btn){
         time_tracker_click(this);
     });
-    //Starts Push Service
-    const swRegistration = null;
     init_push_notifications();
 });
 
+/**
+ * Loads the Products / Services form the DB
+ * @todo: Preload the Data after Page is loaded.
+ * @param {integer} orderid 
+ */
 function get_products(orderid){
     var data={
         action:'get_products',
@@ -56,6 +66,11 @@ function get_products(orderid){
    });
 }
 
+/**
+ * Saves the amount to the database
+ * It takes the existing one and adds the new amount
+ * @param {float} qty 
+ */
 function save_product(qty){
     var order_item_id = jQuery('#tt_customer_products_select').find(':selected').val();
     var data={
@@ -78,21 +93,42 @@ function save_product(qty){
    });
 
 }
-
+/**
+ * Shows the Time Tracker
+ * @param {float} qty 
+ */
 function show_time_tracker(qty){
     jQuery('#tt_timetracker').show();
     jQuery('#tt_start_value .value').html(qty);
 }
+
+/**
+ * Hides the Time Tracker
+ * 
+ */
 function hide_time_tracker(){
     jQuery('#tt_timetracker').hide();
 }
+/**
+ * Shows the "Products" dropdown
+ * @param {float} qty 
+ */
 function show_product_dropdown(qty){
     jQuery('#tt_customer_products').show();
 }
+
+/**
+ * Hides the "Products" dropdown
+ * @param {float} qty 
+ */
 function hide_product_dropdown(){
     jQuery('#tt_customer_products').hide();
 }
 
+/**
+ * Runs on Timetracker Click. Changes the Name of the Button and starts or stops the tracker
+ * @param {object} btn 
+ */
 function time_tracker_click(btn){
     var ctext = jQuery(btn).text();
     if(ctext === 'Start'){
@@ -104,6 +140,11 @@ function time_tracker_click(btn){
     }
 }
 
+/**
+ * Starts the tracking.
+ * Shows the Notification that the tracking has started
+ * Shows every 30 Seconds a Notification
+ */
 function run_time_tracker(){
     jQuery('#tt_customer_select').attr('disabled', true);
     jQuery('#tt_customer_products_select').attr('disabled', true);
@@ -115,14 +156,27 @@ function run_time_tracker(){
     jQuery('#tt_stop_time .value').html('');
 
     //Show the notification
-    showLocalNotification('Time Tracker', 'Tracking started for '+get_current_customer_name(), swRegistration);
-
+    showLocalNotification('Time Tracker', 'Tracking started for '+get_current_customer_name(),'starttt');
+    var ct = null;
     document.tt_timer = window.setInterval(function(){
-           time_tracker_current();
+           ct = time_tracker_current();
       }, 1000);
 
+    document.tt_timer_notification = window.setInterval(function(){
+        showLocalNotification('Time Tracker', 'Tracking still running for '+get_current_customer_name()+'\r\nCurrent time: '+ct,'starttt');
+   }, 1000 * 60 * 30); //Send a notification every 30 Min
+
 }
+
+/**
+ * Stops the tracking.
+ * Clears the Timers
+ * Calls function to save the amount
+ */
 function stop_time_tracker(){
+    //Close the notification
+    closeLocalNotification('starttt');
+    
     jQuery('#tt_customer_select').attr('disabled', false);
     jQuery('#tt_customer_products_select').attr('disabled', false);
     var date = new Date().toLocaleDateString("de-DE");
@@ -134,6 +188,7 @@ function stop_time_tracker(){
 
     //stop the current counter
     clearInterval(document.tt_timer);
+    clearInterval(document.tt_timer_notification);
 
     //compare
     var calcTime = (ctime - otime); //Time in Milliseconds 
@@ -146,18 +201,29 @@ function stop_time_tracker(){
     }
     var qty_to_save = hrs + oqty;
     save_product(qty_to_save);
+
+
 }
 
+/**
+ * Gets the time since the tracking has started.
+ * Updates the "current Time" field
+ */
 function time_tracker_current(){
     var otime = jQuery('#tt_start_time').attr('stime');
     var ctime = new Date().getTime();
 
     var calcTime = (ctime - otime);//Time in Milliseconds
     var hrs = parseFloat(ms_to_hours(calcTime));
-
-    jQuery('#tt_current_time .value').html(ms_to_time(calcTime)+" ("+hrs+"h)");
+    var ct = ms_to_time(calcTime)+" ("+hrs+"h)";
+    jQuery('#tt_current_time .value').html(ct);
+    return ct;
 }
 
+/**
+ * Formats Milliseconds to hh:mm:ss
+ * @param {int} s 
+ */
 function ms_to_time(s){
         var ms = s % 1000;
         s = (s - ms) / 1000;
@@ -170,6 +236,10 @@ function ms_to_time(s){
 
 }
 
+/**
+ * Formats Milliseconds to hours with one decimal (1.5)
+ * @param {int} s 
+ */
 function ms_to_hours(s){
         var ms = s % 1000;
         s = (s - ms) / 1000;
@@ -183,14 +253,27 @@ function ms_to_hours(s){
 
 }
 
+/**
+ * 
+ * @param {int} n  
+ * @param {int} z 
+ */
 function pad(n, z = 2) {
     return ('00' + n).slice(-z);
   }
 
+  /**
+   * Sends a Message to the Log.
+   * @param {*} msg 
+   * @param {*} type 
+   */
 function tt_log(msg, type){
     jQuery('#tt_log').append('<span class="'+type+'">'+msg+'</span><br/>');
 } 
 
+/**
+ * Gets the Name and Company Info of the current selectet Customer
+ */
 function get_current_customer_name(){
     var selector = jQuery('#tt_customer_select').find(':selected');
     var company = selector.attr('data-company');
@@ -198,9 +281,9 @@ function get_current_customer_name(){
     return company+" - "+name;
      
 }
+
+
 //Push Notifications
-
-
 const check = () => {
     if (!('serviceWorker' in navigator)) {
       throw new Error('No Service Worker support!')
@@ -212,8 +295,7 @@ const check = () => {
   
   // I added a function that can be used to register a service worker.
 const registerServiceWorker = async () => {
-    swRegistration = await navigator.serviceWorker.register(wp_frontend_url+'include/scripts/tt-push-service.js'); //notice the file name
-    console.log(swRegistration);
+    const swRegistration = await navigator.serviceWorker.register(wp_frontend_url+'include/scripts/tt-push-service.js'); //notice the file name
     return swRegistration;
 }
  
@@ -227,16 +309,29 @@ const requestNotificationPermission = async () => {
         throw new Error('Permission not granted for Notification');
     }
 }
-
-const showLocalNotification = (title, body, swRegistration) => {
+/**
+ * Displays the notification
+ * @todo On Click event.
+ * @param {*} title 
+ * @param {*} body 
+ * @param {*} thetag 
+ */
+const showLocalNotification = (title, body, thetag = "default") => {
+    dataobj = new Object;
+    dataobj['url'] = window.location.href;
     const options = {
-        body,
+        body: body,
+        tag: thetag,
+        icon: wp_frontend_url+"include/images/icon.ico",
+        badge: wp_frontend_url+"include/images/icon.ico",
+        vibrate: [1000,50,50,50,1000],
+        data: dataobj,
         // here you can add more properties like icon, image, vibrate, etc.
         /**
          * const options = {
               "//": "Visual Options",
               "body": "<String>",
-              "icon": "<URL String>",
+              "icon": "https://fotografie-thun.ch/favicon.ico",
               "image": "<URL String>",
               "badge": "<URL String>",
               "vibrate": "<Array of Integers>",
@@ -260,18 +355,26 @@ const showLocalNotification = (title, body, swRegistration) => {
             https://developer.mozilla.org/en-US/docs/Web/API/notification
          */
     };
-    swRegistration.showNotification(title, options);
+    var not = swRegistration.showNotification(title, options);
+
+                
+    return not;
+    //notifictations['start'] = new Notification(title,options);
+}
+
+function closeLocalNotification(thetag){
+    swRegistration.getNotifications({ tag : thetag }).then(function(notifications) {
+        notifications.forEach(notification => notification.close());
+      });
+    
 }
 
 const init_push_notifications = async () => {
     check();
-    const swRegistration = await registerServiceWorker();
+    swRegistration = await registerServiceWorker();
 
     //Add Button to ask for permission
     const permission =  await requestNotificationPermission();
     
-    
   }
   
-
-
