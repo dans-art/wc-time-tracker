@@ -1,4 +1,4 @@
-#Time Tracker for WooCommerce
+# Time Tracker for WooCommerce
 
 If your using Woocommerce as your Online Shop and you have time based products and services, this plugin is for you!
 It lets you easely select customers and products / services. Track the time you spend for this customer.
