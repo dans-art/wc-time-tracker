@@ -14,8 +14,10 @@
             <?php
             foreach ($orders as $order) {
                 $date = date('d.m.Y', strtotime($order->post_date));
-                //@todo: Replace all Quotes! 
-                echo "<option value='" . $order->ID . "' data-company='".htmlspecialchars($order->_billing_company, ENT_QUOTES )."' data-name='".$order->_billing_first_name." ".$order -> _billing_last_name."'>" . $date . " - " . $order->_billing_company . " | " . $order->_billing_first_name . " " . $order->_billing_last_name . " | " . $order->order_total . " " . $order->currency . "</option>";
+                echo "<option value='" . $order->ID . "' data-company='" . htmlspecialchars($order->_billing_company, ENT_QUOTES) .
+                    "' data-name='" . htmlspecialchars($order->_billing_first_name, ENT_QUOTES) . " " . htmlspecialchars($order->_billing_last_name, ENT_QUOTES) . "'>" .
+                    $date . " - " . $order->_billing_company . " | " . $order->_billing_first_name . " " . $order->_billing_last_name . " | " . $order->order_total . " " . $order->currency .
+                    "</option>";
             }
             ?>
         </select>
@@ -28,6 +30,12 @@
         <button id="tt_action_button" class="button">Start</button>
         <div id="tt_start_value" style="display: none;">
             <span class='value'></span>
+        </div>
+        <div id="tt_description">
+            <span class='label'><?php echo __("Description", "wctt"); ?></span>
+            <span class='value'>
+                <textarea id="tt_meta_description"></textarea>
+            </span>
         </div>
         <div id="tt_start_time" data-stime="">
             <span class='label'>Start time:</span>
