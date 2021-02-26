@@ -1,3 +1,13 @@
+/** 
+ * Plugin Name: Time Tracker for WooCommerce
+ * Description: Main Stylesheet for the Plugin.
+ * Version: 0.1
+ * Author: DansArt
+ * Author URI: http://dans-art.ch
+ * License: GPLv2 or later
+ * @todo: Minify the CSS
+ */
+
 #wc_time_tracker select,
 #wc_time_tracker .button{
     width: 100%;
